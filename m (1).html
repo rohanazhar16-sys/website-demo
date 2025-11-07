@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Namal Fries — Hot & Fresh to Your Room</title>
+
+  <!-- Load Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary:#0b3d91;
+      --accent:#0840a8;
+      --bg:#f8fbff;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --danger:#d9534f;
+      --radius:12px;
+      --shadow: 0 8px 20px rgba(11,61,145,0.08);
+    }
+
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--bg);font-family:Inter,system-ui,Arial;color:#0b2340;}
+
+    .site{max-width:1100px;margin:auto;padding:22px;}
+
+    header{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+    .logo{width:64px;height:64px;border-radius:10px;background:linear-gradient(180deg,var(--primary),var(--accent));display:flex;justify-content:center;align-items:center;color:#fff;font-weight:700;font-size:19px;}
+    h1{margin:0;font-size:22px;}
+    .subtitle{color:var(--muted);font-size:13px;margin-top:3px;}
+
+    .layout{display:grid;grid-template-columns:1fr 350px;gap:20px;}
+    @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+
+    .card{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid rgba(0,0,0,0.05);}
+    h3{margin:0 0 10px 0;font-size:17px;}
+
+    .menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
+    .menu-item{padding:14px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:#ffffff;}
+    .item-name{font-weight:600;color:var(--primary);}
+    .item-price{font-weight:600;margin-top:3px;}
+    .add-btn{margin-top:10px;padding:7px;border-radius:8px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:13px;}
+
+    .cart-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+    .cart-row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.05);background:#fff;font-size:14px;}
+    .remove{border:none;background:#fff;color:var(--danger);cursor:pointer;font-size:13px;}
+
+    label{display:block;margin-top:10px;font-size:13px;}
+    input,textarea{width:100%;padding:9px;border-radius:8px;border:1px solid rgba(0,0,0,0.15);margin-top:5px;}
+
+    .place{background:var(--primary);color:#fff;padding:10px;border-radius:10px;border:none;cursor:pointer;width:100%;margin-top:12px;font-weight:700;}
+    .clear{background:#fff;border:1px solid var(--primary);padding:10px;border-radius:10px;color:var(--primary);cursor:pointer;width:100%;margin-top:8px;}
+
+    footer{margin-top:24px;text-align:center;font-size:13px;color:var(--muted);}
+
+    /* Floating WhatsApp */
+    .wa-float{
+      position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;background:#25d366;display:flex;justify-content:center;align-items:center;font-size:30px;color:#fff;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:999;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="site">
+
+    <header>
+      <div class="logo">NF</div>
+      <div>
+        <h1>Namal Fries</h1>
+        <div class="subtitle">Cash on Delivery • Hostel Delivery • WhatsApp Order</div>
+      </div>
+    </header>
+
+    <div class="layout">
+
+      <main class="card">
+        <h3>Menu</h3>
+        <div class="menu" id="menu"></div>
+        <p class="subtitle" style="margin-top:10px;">Minimum fries price: <b>100 PKR</b></p>
+      </main>
+
+      <aside class="card">
+        <h3>Your Order</h3>
+        <div id="cart" class="cart-list">No items yet.</div>
+        <div style="font-weight:600;margin-bottom:8px;">Total: <span id="totalAmt">PKR 0</span></div>
+
+        <label>Full Name</label>
+        <input id="custName" placeholder="e.g. Rohan">
+
+        <label>Hostel / Block</label>
+        <input id="hostel" placeholder="e.g. H2 Block B">
+
+        <label>Room Number</label>
+        <input id="room" placeholder="e.g. 109">
+
+        <label>Notes (optional)</label>
+        <textarea id="notes" rows="2"></textarea>
+
+        <button class="place" id="placeOrder">Place Order</button>
+        <button class="clear" id="clearCart">Clear Cart</button>
+      </aside>
+    </div>
+
+    <footer>Made by <b>M. Rohan</b> — Namal University 💙</footer>
+  </div>
+
+  <div id="waFloat" class="wa-float">💬</div>
+
+<script>
+const MENU = [
+  {id:'fries', name:'Fries', price:100},
+  {id:'tea', name:'Tea (Cup)', price:50},
+  {id:'cold', name:'Cold Drink', price:100}
+];
+
+let cart=[];
+
+function renderMenu(){
+  const menu=document.getElementById("menu");
+  menu.innerHTML="";
+  MENU.forEach(i=>{
+    menu.innerHTML+=`
+      <div class="menu-item">
+        <div class="item-name">${i.name}</div>
+        <div class="item-price">PKR ${i.price}</div>
+        <button class="add-btn" onclick="addToCart('${i.id}')">Add</button>
+      </div>`;
+  });
+}
+
+function addToCart(id){
+  const it=MENU.find(x=>x.id===id);
+  cart.push(it);
+  renderCart();
+}
+
+function renderCart(){
+  const c=document.getElementById("cart");
+  if(cart.length===0){c.innerHTML="No items yet.";document.getElementById("totalAmt").innerText="PKR 0";return;}
+  c.innerHTML="";
+  let total=0;
+  cart.forEach((i,index)=>{
+    total+=i.price;
+    c.innerHTML+=`<div class="cart-row">${i.name} - PKR ${i.price}<button class="remove" onclick="removeItem(${index})">x</button></div>`;
+  });
+  document.getElementById("totalAmt").innerText="PKR "+total;
+}
+
+function removeItem(i){
+  cart.splice(i,1);renderCart();
+}
+
+document.getElementById("clearCart").onclick=()=>{cart=[];renderCart();};
+
+document.getElementById("placeOrder").onclick=()=>{
+ if(cart.length===0)return alert("Cart is empty");
+ let room=document.getElementById("room").value.trim();
+ if(room==="")return alert("Enter room number");
+ let msg=`Order:%0A${cart.map(x=>x.name+" - "+x.price).join("%0A")}%0A%0AName: ${custName.value}%0AHostel: ${hostel.value}%0ARoom: ${room}%0ANotes: ${notes.value}%0ATotal: ${document.getElementById("totalAmt").innerText}`;
+ window.open(`https://wa.me/923126633416?text=${msg}`,"_blank");
+ cart=[];renderCart();
+};
+
+document.getElementById("waFloat").onclick=()=>window.open("https://wa.me/923126633416","_blank");
+
+renderMenu();renderCart();
+</script>
+</body>
+</html>
